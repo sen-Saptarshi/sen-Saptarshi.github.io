@@ -7,135 +7,750 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --green:  #00ff88;
+      --blue:   #00aaff;
+      --yellow: #ffcc00;
+      --red:    #ff5555;
+      --dim:    #555;
+      --muted:  #888;
+      --bg:     #0d0d0d;
+    }
+
     body {
-      background: #0d0d0d;
-      color: #00ff88;
+      background: var(--bg);
+      color: var(--green);
       font-family: 'Courier New', Courier, monospace;
       font-size: 15px;
       min-height: 100vh;
+    }
+
+    /* ── window chrome ─────────────────────────────── */
+    .window {
       display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 40px 16px 60px;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 860px;
+      margin: 0 auto;
+      border-left: 1px solid #1a1a1a;
+      border-right: 1px solid #1a1a1a;
     }
 
-    .terminal {
-      width: 100%;
-      max-width: 720px;
+    .titlebar {
+      background: #1a1a1a;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .dot { width: 13px; height: 13px; border-radius: 50%; }
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green  { background: #28c940; }
+    .titlebar-label {
+      flex: 1;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: .04em;
     }
 
-    .line { margin-bottom: 4px; }
-
-    .prompt { color: #888; }
-    .prompt span { color: #00ff88; }
-
-    .comment { color: #555; }
-
-    .section-title {
-      color: #00aaff;
-      margin-top: 24px;
-      margin-bottom: 6px;
+    /* ── output area ───────────────────────────────── */
+    #output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px 20px 4px;
+      scroll-behavior: smooth;
     }
 
-    .tag {
-      display: inline-block;
-      color: #ffcc00;
-      margin-right: 4px;
-    }
+    .line { margin-bottom: 3px; white-space: pre-wrap; word-break: break-word; }
+    .line.gap { margin-bottom: 14px; }
 
-    .sr-only {
-      position: absolute;
-      width: 1px; height: 1px;
-      padding: 0; margin: -1px;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
-      white-space: nowrap;
-      border: 0;
-    }
+    .c-green  { color: var(--green); }
+    .c-blue   { color: var(--blue); }
+    .c-yellow { color: var(--yellow); }
+    .c-red    { color: var(--red); }
+    .c-dim    { color: var(--dim); }
+    .c-muted  { color: var(--muted); }
+    .c-white  { color: #e0e0e0; }
+    .bold     { font-weight: 700; }
 
-    .cursor {
-      display: inline-block;
-      width: 9px;
-      height: 1.1em;
-      background: #00ff88;
-      vertical-align: text-bottom;
-      animation: blink 1s step-start infinite;
-    }
-
-    a { color: #00aaff; text-decoration: none; }
+    a { color: var(--blue); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    @keyframes blink {
-      50% { opacity: 0; }
+    /* ── input row ─────────────────────────────────── */
+    #input-row {
+      display: flex;
+      align-items: center;
+      padding: 6px 20px 14px;
+      flex-shrink: 0;
+      gap: 0;
     }
+
+    #ps1 {
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #ps1 .host { color: var(--green); }
+
+    #cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--green);
+      font-family: inherit;
+      font-size: inherit;
+      caret-color: var(--green);
+      padding: 0 4px;
+    }
+
+    /* ── autocomplete hint ─────────────────────────── */
+    #hint {
+      color: var(--dim);
+      padding: 0 20px 4px;
+      font-size: 13px;
+      min-height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── sr-only ───────────────────────────────────── */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    /* ── scrollbar ─────────────────────────────────── */
+    #output::-webkit-scrollbar { width: 6px; }
+    #output::-webkit-scrollbar-track { background: transparent; }
+    #output::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
+
+    /* ── selection ─────────────────────────────────── */
+    ::selection { background: #00ff8833; }
   </style>
 </head>
 <body>
-  <main class="terminal">
-    <h1 class="sr-only">Saptarshi Sen — Developer Portfolio</h1>
+<h1 class="sr-only">Saptarshi Sen — Developer Portfolio</h1>
 
-    <div class="line comment"># saptdev.me — portfolio</div>
-    <div class="line">&nbsp;</div>
+<div class="window">
+  <div class="titlebar">
+    <div class="dot dot-red"></div>
+    <div class="dot dot-yellow"></div>
+    <div class="dot dot-green"></div>
+    <div class="titlebar-label">saptdev@portfolio — guest shell</div>
+  </div>
 
-    <div class="line">
-      <span class="prompt">guest@saptdev.me:~$ </span>whoami
-    </div>
-    <div class="line">&nbsp;</div>
-    <div class="line"><strong>Saptarshi Sen</strong> &nbsp;<span class="comment">// saptdev</span></div>
-    <div class="line">Final year · B.Tech Metallurgical Engineering · IIT ISM Dhanbad</div>
+  <div id="output" aria-live="polite" aria-label="Terminal output"></div>
 
-    <div class="line">&nbsp;</div>
-    <div class="line">
-      <span class="prompt">guest@saptdev.me:~$ </span>cat interests.txt
-    </div>
-    <div class="section-title"># AI / ML</div>
-    <div class="line">
-      <span class="tag">GenAI</span>
-      <span class="tag">LLMs</span>
-      <span class="tag">Image Generators</span>
-      <span class="tag">GANs</span>
-      <span class="tag">Transformers</span>
-      <span class="tag">Deep Learning</span>
-    </div>
+  <div id="hint" aria-live="polite"></div>
 
-    <div class="section-title"># Full Stack</div>
-    <div class="line">
-      <span class="tag">MERN</span>
-      <span class="tag">Next.js</span>
-      <span class="tag">TypeScript</span>
-      <span class="tag">Prisma ORM</span>
-      <span class="tag">PostgreSQL</span>
-      <span class="tag">Turborepo</span>
-      <span class="tag">Cloudflare Workers</span>
-    </div>
+  <div id="input-row">
+    <span id="ps1" aria-hidden="true">
+      <span class="c-muted">guest@</span><span class="host">saptdev.me</span><span class="c-muted">:~$ </span>
+    </span>
+    <label for="cmd-input" class="sr-only">Enter command</label>
+    <input id="cmd-input" type="text" autocomplete="off" autocorrect="off"
+           autocapitalize="off" spellcheck="false" autofocus
+           aria-label="Terminal command input" />
+  </div>
+</div>
 
-    <div class="section-title"># DevOps</div>
-    <div class="line">
-      <span class="tag">Docker</span>
-      <span class="tag">Kubernetes</span>
-      <span class="tag">nginx</span>
-    </div>
+<script>
+(function () {
+  'use strict';
 
-    <div class="section-title"># Exploring</div>
-    <div class="line">
-      <span class="tag">Blockchain</span>
-      <span class="tag">Solana</span>
-    </div>
+  /* ═══════════════════════════════════════════════
+     Virtual filesystem
+  ═══════════════════════════════════════════════ */
+  const FS = {
+    '~': {
+      type: 'dir',
+      children: ['about.txt','interests.txt','skills.txt','projects.txt','links.txt','contact.txt','README.md']
+    },
+    '~/about.txt': {
+      type: 'file',
+      content: [
+        { text: 'Saptarshi Sen  //  saptdev', cls: 'c-green bold' },
+        { text: '' },
+        { text: 'Final year B.Tech · Metallurgical Engineering', cls: 'c-white' },
+        { text: 'IIT (ISM) Dhanbad', cls: 'c-white' },
+        { text: '' },
+        { text: 'I build things at the intersection of AI and the web —', cls: 'c-white' },
+        { text: 'from full-stack apps to fine-tuned language models.', cls: 'c-white' },
+      ]
+    },
+    '~/interests.txt': {
+      type: 'file',
+      content: [
+        { text: '# AI / ML', cls: 'c-blue bold' },
+        { text: '  GenAI  ·  LLMs  ·  Image Generators  ·  GANs  ·  Transformers  ·  Deep Learning', cls: 'c-yellow' },
+        { text: '' },
+        { text: '# Full Stack', cls: 'c-blue bold' },
+        { text: '  MERN  ·  Next.js  ·  TypeScript  ·  Prisma ORM  ·  PostgreSQL  ·  Turborepo  ·  Cloudflare Workers', cls: 'c-yellow' },
+        { text: '' },
+        { text: '# DevOps', cls: 'c-blue bold' },
+        { text: '  Docker  ·  Kubernetes  ·  nginx', cls: 'c-yellow' },
+        { text: '' },
+        { text: '# Exploring', cls: 'c-blue bold' },
+        { text: '  Blockchain  ·  Solana', cls: 'c-yellow' },
+      ]
+    },
+    '~/skills.txt': {
+      type: 'file',
+      content: [
+        { text: '# Languages', cls: 'c-blue bold' },
+        { text: '  Python  ·  TypeScript  ·  JavaScript  ·  C++  ·  Rust (learning)', cls: 'c-yellow' },
+        { text: '' },
+        { text: '# Frameworks & Libraries', cls: 'c-blue bold' },
+        { text: '  React  ·  Next.js  ·  Express  ·  FastAPI  ·  PyTorch  ·  HuggingFace', cls: 'c-yellow' },
+        { text: '' },
+        { text: '# Databases', cls: 'c-blue bold' },
+        { text: '  PostgreSQL  ·  MongoDB  ·  Redis', cls: 'c-yellow' },
+        { text: '' },
+        { text: '# Cloud & Infra', cls: 'c-blue bold' },
+        { text: '  AWS  ·  Docker  ·  Kubernetes  ·  Cloudflare  ·  Vercel', cls: 'c-yellow' },
+      ]
+    },
+    '~/projects.txt': {
+      type: 'file',
+      content: [
+        { text: '# Projects', cls: 'c-blue bold' },
+        { text: '' },
+        { text: '  [1] LLM Fine-tuning Pipeline', cls: 'c-green bold' },
+        { text: '      Custom RLHF training pipeline for domain-specific LLMs.', cls: 'c-white' },
+        { text: '      Stack: Python · PyTorch · HuggingFace · LoRA', cls: 'c-muted' },
+        { text: '' },
+        { text: '  [2] Full-Stack SaaS Boilerplate', cls: 'c-green bold' },
+        { text: '      Turborepo monorepo with auth, billing, and AI integrations.', cls: 'c-white' },
+        { text: '      Stack: Next.js · Prisma · PostgreSQL · Stripe', cls: 'c-muted' },
+        { text: '' },
+        { text: '  [3] Blockchain Voting DApp', cls: 'c-green bold' },
+        { text: '      On-chain governance and voting on Solana.', cls: 'c-white' },
+        { text: '      Stack: Rust · Anchor · TypeScript · React', cls: 'c-muted' },
+        { text: '' },
+        { text: '  [4] GAN Image Synthesiser', cls: 'c-green bold' },
+        { text: '      Conditional GAN for high-res image synthesis.', cls: 'c-white' },
+        { text: '      Stack: Python · PyTorch · CUDA', cls: 'c-muted' },
+      ]
+    },
+    '~/links.txt': {
+      type: 'file',
+      content: [
+        { text: '# Links', cls: 'c-blue bold' },
+        { text: '' },
+        { text: '  GitHub   →  https://github.com/sen-Saptarshi', cls: 'c-white', link: 'https://github.com/sen-Saptarshi' },
+      ]
+    },
+    '~/contact.txt': {
+      type: 'file',
+      content: [
+        { text: '# Get in touch', cls: 'c-blue bold' },
+        { text: '' },
+        { text: '  GitHub   →  github.com/sen-Saptarshi', cls: 'c-white' },
+        { text: '' },
+        { text: '  Open to: internships · collaborations · research projects', cls: 'c-yellow' },
+      ]
+    },
+    '~/README.md': {
+      type: 'file',
+      content: [
+        { text: '# saptdev.me', cls: 'c-green bold' },
+        { text: '' },
+        { text: 'Interactive terminal portfolio of Saptarshi Sen.', cls: 'c-white' },
+        { text: '' },
+        { text: 'Type `help` to see available commands.', cls: 'c-muted' },
+      ]
+    }
+  };
 
-    <div class="line">&nbsp;</div>
-    <div class="line">
-      <span class="prompt">guest@saptdev.me:~$ </span>cat links.txt
-    </div>
-    <div class="line">&nbsp;</div>
-    <div class="line">
-      GitHub &nbsp;&nbsp;→ <a href="https://github.com/sen-Saptarshi" target="_blank" rel="noopener">github.com/sen-Saptarshi</a>
-    </div>
+  /* ═══════════════════════════════════════════════
+     State
+  ═══════════════════════════════════════════════ */
+  const MAX_HISTORY = 500;
+  const history   = [];
+  let   histIdx   = -1;
+  let   histDraft = '';
+  const cwd       = '~';
 
-    <div class="line">&nbsp;</div>
-    <div class="line">
-      <span class="prompt">guest@saptdev.me:~$ </span><span class="cursor"></span>
-    </div>
+  /* ═══════════════════════════════════════════════
+     DOM helpers
+  ═══════════════════════════════════════════════ */
+  const output = document.getElementById('output');
+  const input  = document.getElementById('cmd-input');
+  const hint   = document.getElementById('hint');
 
-  </main>
+  function println(text, cls) {
+    const d = document.createElement('div');
+    d.className = 'line' + (cls ? ' ' + cls : '');
+    if (text === '') {
+      d.innerHTML = '&nbsp;';
+    } else {
+      d.textContent = text;
+    }
+    output.appendChild(d);
+  }
+
+  function printHTML(html, cls) {
+    const d = document.createElement('div');
+    d.className = 'line' + (cls ? ' ' + cls : '');
+    d.innerHTML = html;
+    output.appendChild(d);
+  }
+
+  function printLines(lines) {
+    lines.forEach(function(l) {
+      if (l.link) {
+        const arrow = l.text.includes('→')
+          ? l.text.slice(0, l.text.indexOf('→') + 1) + '  '
+          : l.text + '  ';
+        printHTML(
+          escHtml(arrow) +
+          '<a href="' + escHtml(l.link) + '" target="_blank" rel="noopener">' +
+          escHtml(l.link.replace('https://', '')) + '</a>',
+          l.cls || ''
+        );
+      } else {
+        println(l.text, l.cls || '');
+      }
+    });
+  }
+
+  function printPrompt(cmd) {
+    printHTML(
+      '<span class="c-muted">guest@</span><span class="c-green">saptdev.me</span>' +
+      '<span class="c-muted">:~$ </span>' +
+      '<span class="c-white">' + escHtml(cmd) + '</span>'
+    );
+  }
+
+  function scrollBottom() {
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function gap() {
+    const d = document.createElement('div');
+    d.className = 'line gap';
+    d.innerHTML = '&nbsp;';
+    output.appendChild(d);
+  }
+
+  /* ═══════════════════════════════════════════════
+     Commands
+  ═══════════════════════════════════════════════ */
+  const COMMANDS = {
+
+    help: function() {
+      println('');
+      println('Available commands:', 'c-blue bold');
+      println('');
+      const cmds = [
+        ['help',           'Show this help message'],
+        ['whoami',         'About me'],
+        ['ls',             'List files in current directory'],
+        ['cat <file>',     'Display file contents'],
+        ['pwd',            'Print working directory'],
+        ['echo <text>',    'Print text to terminal'],
+        ['date',           'Show current date & time'],
+        ['history',        'Show command history'],
+        ['clear',          'Clear the terminal'],
+        ['neofetch',       'System info (portfolio edition)'],
+        ['uname',          'Kernel / system info'],
+        ['man <cmd>',      'Manual page for a command'],
+        ['sudo <cmd>',     'Try to run as root… 😏'],
+        ['banner',         'Display the ASCII banner'],
+      ];
+      cmds.forEach(function(c) {
+        printHTML(
+          '  <span class="c-green">' + escHtml(c[0].padEnd(20)) + '</span>' +
+          '<span class="c-muted">' + escHtml(c[1]) + '</span>'
+        );
+      });
+      println('');
+      println('Tip: use ↑ / ↓ to navigate history, Tab to autocomplete.', 'c-dim');
+      println('');
+    },
+
+    whoami: function() {
+      println('');
+      println('Saptarshi Sen  //  saptdev', 'c-green bold');
+      println('');
+      println('Final year B.Tech · Metallurgical Engineering', 'c-white');
+      println('IIT (ISM) Dhanbad', 'c-white');
+      println('');
+      println('I build things at the intersection of AI and the web —', 'c-white');
+      println('from full-stack apps to fine-tuned language models.', 'c-white');
+      println('');
+    },
+
+    ls: function(args) {
+      const flag = args[0] || '';
+      const dir = FS[cwd];
+      if (!dir) { println('ls: cannot access directory', 'c-red'); return; }
+      println('');
+      if (flag === '-la' || flag === '-al' || flag === '-a') {
+        println('total ' + dir.children.length, 'c-muted');
+        println('drwxr-xr-x  saptdev  saptdev   -  .', 'c-muted');
+        println('drwxr-xr-x  root     root      -  ..', 'c-muted');
+      }
+      dir.children.forEach(function(name) {
+        const isDir = name.endsWith('/');
+        if (flag === '-la' || flag === '-al') {
+          printHTML(
+            '<span class="c-muted">-rw-r--r--  saptdev  saptdev  ' +
+            String(FS[cwd + '/' + name] && FS[cwd + '/' + name].content
+              ? FS[cwd + '/' + name].content.reduce(function(acc, l) { return acc + l.text.length; }, 0) + 64
+              : 64
+            ).padStart(4) + '  </span>' +
+            (isDir
+              ? '<span class="c-blue bold">' + escHtml(name) + '</span>'
+              : '<span class="c-green">' + escHtml(name) + '</span>')
+          );
+        } else {
+          println('  ' + name, isDir ? 'c-blue bold' : 'c-green');
+        }
+      });
+      println('');
+    },
+
+    cat: function(args) {
+      if (!args.length || !args[0]) {
+        println('Usage: cat <file>', 'c-red');
+        return;
+      }
+      const name = args[0];
+      const key  = cwd + '/' + name;
+      const node = FS[key];
+      if (!node) {
+        println('cat: ' + name + ': No such file or directory', 'c-red');
+        return;
+      }
+      if (node.type === 'dir') {
+        println('cat: ' + name + ': Is a directory', 'c-red');
+        return;
+      }
+      println('');
+      printLines(node.content);
+      println('');
+    },
+
+    pwd: function() {
+      println('/home/guest  (~)', 'c-white');
+    },
+
+    echo: function(args) {
+      println(args.join(' '), 'c-white');
+    },
+
+    date: function() {
+      println(new Date().toString(), 'c-white');
+    },
+
+    clear: function() {
+      output.innerHTML = '';
+    },
+
+    history: function() {
+      println('');
+      if (!history.length) { println('  (empty)', 'c-dim'); return; }
+      history.forEach(function(cmd, i) {
+        printHTML(
+          '  <span class="c-muted">' + String(i + 1).padStart(4) + '  </span>' +
+          '<span class="c-white">' + escHtml(cmd) + '</span>'
+        );
+      });
+      println('');
+    },
+
+    neofetch: function() {
+      println('');
+      printHTML(
+        '<span class="c-green bold">          ██████╗ ███████╗██╗   ██╗</span>'
+      );
+      printHTML(
+        '<span class="c-green bold">         ██╔════╝ ██╔════╝██║   ██║</span>'
+      );
+      printHTML(
+        '<span class="c-green bold">         ╚█████╗  █████╗  ██║   ██║</span>'
+      );
+      printHTML(
+        '<span class="c-green bold">          ╚════██╗██╔══╝  ╚██╗ ██╔╝</span>'
+      );
+      printHTML(
+        '<span class="c-green bold">         ██████╔╝███████╗  ╚████╔╝</span>'
+      );
+      printHTML(
+        '<span class="c-green bold">         ╚═════╝ ╚══════╝   ╚═══╝</span>'
+      );
+      println('');
+      const info = [
+        ['OS',       'PortfolioOS 1.0.0 x86_64'],
+        ['Host',     'saptdev.me'],
+        ['Shell',    'guestsh 1.0.0'],
+        ['User',     'guest'],
+        ['Owner',    'Saptarshi Sen (saptdev)'],
+        ['Degree',   'B.Tech Metallurgical Eng · IIT ISM Dhanbad'],
+        ['Focus',    'AI/ML · Full-Stack · DevOps'],
+        ['GitHub',   'github.com/sen-Saptarshi'],
+        ['Uptime',   uptimeStr()],
+      ];
+      info.forEach(function(row) {
+        printHTML(
+          '  <span class="c-green bold">' + row[0].padEnd(10) + '</span>' +
+          '<span class="c-muted">: </span>' +
+          '<span class="c-white">' + escHtml(row[1]) + '</span>'
+        );
+      });
+      println('');
+    },
+
+    uname: function(args) {
+      const all = args.includes('-a');
+      if (all) {
+        println('PortfolioOS 1.0.0 #1 SMP x86_64 GNU/Linux  (saptdev edition)', 'c-white');
+      } else {
+        println('PortfolioOS', 'c-white');
+      }
+    },
+
+    banner: function() {
+      printBanner();
+    },
+
+    man: function(args) {
+      if (!args.length || !args[0]) {
+        println('What manual page do you want?', 'c-red');
+        return;
+      }
+      const cmd = args[0];
+      const descriptions = {
+        help:     'help — display list of available commands',
+        whoami:   'whoami — print current user / owner information',
+        ls:       'ls [-la] — list directory contents.  Use -la for detailed view.',
+        cat:      'cat <file> — concatenate and print file contents.',
+        pwd:      'pwd — print name of current/working directory.',
+        echo:     'echo <text> — display a line of text.',
+        date:     'date — print the system date and time.',
+        clear:    'clear — clear the terminal screen.',
+        history:  'history — display command history.',
+        neofetch: 'neofetch — display system information with ASCII art.',
+        uname:    'uname [-a] — print system information.',
+        banner:   'banner — display the ASCII art banner.',
+        sudo:     'sudo <cmd> — execute a command as root (spoiler: not here).',
+        man:      'man <cmd> — display manual page for a command.',
+      };
+      if (descriptions[cmd]) {
+        println('');
+        println('NAME', 'c-blue bold');
+        println('  ' + descriptions[cmd], 'c-white');
+        println('');
+      } else {
+        println('No manual entry for ' + cmd, 'c-red');
+      }
+    },
+
+    sudo: function(args) {
+      const sub = args.join(' ');
+      if (sub === 'rm -rf /') {
+        println('Deleting everything...', 'c-red');
+        setTimeout(function() {
+          output.innerHTML = '';
+          println('Just kidding 😄', 'c-green bold');
+          println('Nice try though.', 'c-muted');
+        }, 900);
+        return;
+      }
+      println('[sudo] password for guest: ', 'c-yellow');
+      setTimeout(function() {
+        println('Sorry, user guest is not in the sudoers file.', 'c-red');
+        println('This incident will be reported.', 'c-red');
+      }, 600);
+    },
+  };
+
+  /* ═══════════════════════════════════════════════
+     Tab completion
+  ═══════════════════════════════════════════════ */
+  const ALL_CMDS   = Object.keys(COMMANDS);
+  const ALL_FILES  = FS['~'].children;
+
+  function completions(val) {
+    const parts = val.split(' ');
+    if (parts.length === 1) {
+      return ALL_CMDS.filter(function(c) { return c.startsWith(val); });
+    }
+    if (parts.length === 2 && ['cat','man'].includes(parts[0])) {
+      const stem = parts[1];
+      const pool = parts[0] === 'man' ? ALL_CMDS : ALL_FILES;
+      return pool
+        .filter(function(f) { return f.startsWith(stem); })
+        .map(function(f) { return parts[0] + ' ' + f; });
+    }
+    return [];
+  }
+
+  /* ═══════════════════════════════════════════════
+     Helpers
+  ═══════════════════════════════════════════════ */
+  const startTime = Date.now();
+  function uptimeStr() {
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    const m = Math.floor(s / 60);
+    const h = Math.floor(m / 60);
+    return (h ? h + 'h ' : '') + (m % 60) + 'm ' + (s % 60) + 's';
+  }
+
+  function printBanner() {
+    printHTML('<span class="c-green bold">  ██████╗   █████╗  ██████╗ ████████╗</span>');
+    printHTML('<span class="c-green bold">  ██╔════╝ ██╔══██╗ ██╔══██╗╚══██╔══╝</span>');
+    printHTML('<span class="c-green bold">  ╚█████╗  ███████║ ██████╔╝   ██║   </span>');
+    printHTML('<span class="c-green bold">   ╚════██╗██╔══██║ ██╔═══╝    ██║   </span>');
+    printHTML('<span class="c-green bold">  ██████╔╝ ██║  ██║ ██║        ██║   </span>');
+    printHTML('<span class="c-green bold">  ╚═════╝  ╚═╝  ╚═╝ ╚═╝        ╚═╝   </span>');
+    printHTML('<span class="c-muted">         saptdev.me — interactive portfolio</span>');
+  }
+
+  /* ═══════════════════════════════════════════════
+     Boot sequence
+  ═══════════════════════════════════════════════ */
+  function boot() {
+    printBanner();
+    println('');
+    println('Welcome! Type `help` for a list of commands.', 'c-muted');
+    println('Try: whoami · ls · cat about.txt · neofetch', 'c-dim');
+    println('');
+    scrollBottom();
+  }
+
+  /* ═══════════════════════════════════════════════
+     Run a command
+  ═══════════════════════════════════════════════ */
+  function run(raw) {
+    const trimmed = raw.trim();
+    if (!trimmed) { return; }
+
+    history.unshift(trimmed);
+    if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+    histIdx   = -1;
+    histDraft = '';
+
+    printPrompt(trimmed);
+
+    const parts = trimmed.split(/\s+/);
+    const cmd   = parts[0].toLowerCase();
+    const args  = parts.slice(1);
+
+    if (COMMANDS[cmd]) {
+      COMMANDS[cmd](args);
+    } else {
+      println('');
+      println(cmd + ': command not found. Type `help` for available commands.', 'c-red');
+      println('');
+    }
+
+    scrollBottom();
+  }
+
+  /* ═══════════════════════════════════════════════
+     Input handling
+  ═══════════════════════════════════════════════ */
+  function moveCursorToEnd() {
+    setTimeout(function() { input.setSelectionRange(input.value.length, input.value.length); }, 0);
+  }
+
+  input.addEventListener('keydown', function(e) {
+    // Enter
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = input.value;
+      input.value = '';
+      hint.textContent = '';
+      run(val);
+      return;
+    }
+
+    // Tab completion
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const val = input.value;
+      const matches = completions(val);
+      if (matches.length === 1) {
+        input.value = matches[0];
+        hint.textContent = '';
+      } else if (matches.length > 1) {
+        hint.textContent = matches.join('  ');
+      }
+      return;
+    }
+
+    // Arrow Up
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!history.length) return;
+      if (histIdx === -1) histDraft = input.value;
+      histIdx = Math.min(histIdx + 1, history.length - 1);
+      input.value = history[histIdx];
+      moveCursorToEnd();
+      return;
+    }
+
+    // Arrow Down
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (histIdx === -1) return;
+      histIdx--;
+      input.value = histIdx === -1 ? histDraft : history[histIdx];
+      moveCursorToEnd();
+      return;
+    }
+
+    // Ctrl+L → clear
+    if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      COMMANDS.clear();
+      return;
+    }
+
+    // Ctrl+C → cancel current input
+    if (e.key === 'c' && e.ctrlKey) {
+      e.preventDefault();
+      printPrompt(input.value + '^C');
+      input.value = '';
+      hint.textContent = '';
+      histIdx = -1;
+      scrollBottom();
+      return;
+    }
+  });
+
+  // Update autocomplete hint while typing
+  input.addEventListener('input', function() {
+    const val = input.value;
+    if (!val) { hint.textContent = ''; return; }
+    const matches = completions(val);
+    if (matches.length > 1) {
+      hint.textContent = matches.join('  ');
+    } else {
+      hint.textContent = '';
+    }
+  });
+
+  // Click anywhere → focus input
+  document.addEventListener('click', function() { input.focus(); });
+
+  /* ═══════════════════════════════════════════════
+     Start
+  ═══════════════════════════════════════════════ */
+  boot();
+  input.focus();
+}());
+</script>
 </body>
 </html>
