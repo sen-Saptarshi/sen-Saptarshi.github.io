@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>saptdev | portfolio</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0d0d;
+      color: #00ff88;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 60px;
+    }
+
+    .terminal {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .line { margin-bottom: 4px; }
+
+    .prompt { color: #888; }
+    .prompt span { color: #00ff88; }
+
+    .comment { color: #555; }
+
+    .section-title {
+      color: #00aaff;
+      margin-top: 24px;
+      margin-bottom: 6px;
+    }
+
+    .tag {
+      display: inline-block;
+      color: #ffcc00;
+      margin-right: 4px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 9px;
+      height: 1.1em;
+      background: #00ff88;
+      vertical-align: text-bottom;
+      animation: blink 1s step-start infinite;
+    }
+
+    a { color: #00aaff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="terminal">
+    <h1 class="sr-only">Saptarshi Sen — Developer Portfolio</h1>
+
+    <div class="line comment"># saptdev.me — portfolio</div>
+    <div class="line">&nbsp;</div>
+
+    <div class="line">
+      <span class="prompt">guest@saptdev.me:~$ </span>whoami
+    </div>
+    <div class="line">&nbsp;</div>
+    <div class="line"><strong>Saptarshi Sen</strong> &nbsp;<span class="comment">// saptdev</span></div>
+    <div class="line">Final year · B.Tech Metallurgical Engineering · IIT ISM Dhanbad</div>
+
+    <div class="line">&nbsp;</div>
+    <div class="line">
+      <span class="prompt">guest@saptdev.me:~$ </span>cat interests.txt
+    </div>
+    <div class="section-title"># AI / ML</div>
+    <div class="line">
+      <span class="tag">GenAI</span>
+      <span class="tag">LLMs</span>
+      <span class="tag">Image Generators</span>
+      <span class="tag">GANs</span>
+      <span class="tag">Transformers</span>
+      <span class="tag">Deep Learning</span>
+    </div>
+
+    <div class="section-title"># Full Stack</div>
+    <div class="line">
+      <span class="tag">MERN</span>
+      <span class="tag">Next.js</span>
+      <span class="tag">TypeScript</span>
+      <span class="tag">Prisma ORM</span>
+      <span class="tag">PostgreSQL</span>
+      <span class="tag">Turborepo</span>
+      <span class="tag">Cloudflare Workers</span>
+    </div>
+
+    <div class="section-title"># DevOps</div>
+    <div class="line">
+      <span class="tag">Docker</span>
+      <span class="tag">Kubernetes</span>
+      <span class="tag">nginx</span>
+    </div>
+
+    <div class="section-title"># Exploring</div>
+    <div class="line">
+      <span class="tag">Blockchain</span>
+      <span class="tag">Solana</span>
+    </div>
+
+    <div class="line">&nbsp;</div>
+    <div class="line">
+      <span class="prompt">guest@saptdev.me:~$ </span>cat links.txt
+    </div>
+    <div class="line">&nbsp;</div>
+    <div class="line">
+      GitHub &nbsp;&nbsp;→ <a href="https://github.com/sen-Saptarshi" target="_blank" rel="noopener">github.com/sen-Saptarshi</a>
+    </div>
+
+    <div class="line">&nbsp;</div>
+    <div class="line">
+      <span class="prompt">guest@saptdev.me:~$ </span><span class="cursor"></span>
+    </div>
+
+  </main>
+</body>
+</html>
